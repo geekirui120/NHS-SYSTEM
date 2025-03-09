@@ -203,8 +203,9 @@ class HospitalManagement:
     def main_menu(self):
         while True:
             click.echo("Welcome to National Health Services")
-            choice = click.prompt("Please select an option\n1. Doctors in Sessions.\n2. Nurses Available.\n3. Patients Records \n4. Wards[M/F]\n>Select an option", type=str)
-            
+            choice = click.prompt("Please select an option:\n1. Doctors in Sessions.\n2. Nurses Available.\n3. Patients Records \n4. Wards[M/F]"
+            "\nSelect a Referral option:\n1. Eldoret Level 5.\n2. Nairobi Hospital.\n3. Kenyatta National Hospital."
+            "\nAmbulance Appointments:\n1. For pick-up services $50.\n2 For referrals services $100.", type=str)
             if choice.lower() == 'q':
                 break
 

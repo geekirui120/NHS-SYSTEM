@@ -1,93 +1,36 @@
-from faker import Faker
-import random
-from models import Doctor, Nurse, Patient, Ward, nurses_patients
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from models import Doctor, Nurse, Patient, Ward, nurses_patients
 
-fake = Faker()
+engine = create_engine("sqlite:///database.db")
+Session = sessionmaker(bind=engine)
+session = Session()
 
-if __name__ == "__main__":
-    engine = create_engine("sqlite:///database.db")
-    Session = sessionmaker(bind=engine)
-    session = Session()
+# Fetch and display doctors
+print("\nDoctors:")
+for doctor in session.query(Doctor).all():
+    print(f"ID: {doctor.id}, Name: {doctor.name}, Specialization: {doctor.specialization}")
 
-    # Clear existing data
-    session.query(Doctor).delete()
-    session.query(Nurse).delete()
-    session.query(Patient).delete()
-    session.query(Ward).delete()
+# Fetch and display nurses
+print("\nNurses:")
+for nurse in session.query(Nurse).all():
+    print(f"ID: {nurse.id}, Name: {nurse.name}, Assigned Doctor ID: {nurse.doctor_id}")
 
-    # List of doctor specializations
-    specializations = ["Cardiology", "Dermatology", "Gastroenterology", "Neurology", 
-                       "Orthopedics", "Pediatrics", "Oncology", "Psychiatry", 
-                       "Radiology", "Urology"]
+# Fetch and display patients
+print("\nPatients:")
+for patient in session.query(Patient).all():
+    print(f"ID: {patient.id}, Name: {patient.name}, Assigned Doctor ID: {patient.doctor_id}, Ward ID: {patient.ward_id}")
 
-    doctors = []
-    for _ in range(10):
-        doctor = Doctor(
-            name=fake.name(),
-            specialization=random.choice(specializations)
-        )
-        session.add(doctor)
-        session.commit()
-        doctors.append(doctor)
+# Fetch and display wards
+print("\nWards:")
+for ward in session.query(Ward).all():
+    print(f"ID: {ward.id}, Name: {ward.name}")
 
-    nurses = []
-    for _ in range(15):
-        nurse = Nurse(
-            name=fake.name(),
-            doctor_id=random.randint(1, 10),
-        )
-        session.add(nurse)
-        session.commit()
-        nurses.append(nurse)
+# Fetch and display nurse-patient relationships
+print("\nNurse-Patient Relationships:")
+for nurse in session.query(Nurse).all():
+    print(f"Nurse {nurse.name} (ID: {nurse.id}) is assigned to patients:")
+    for patient in nurse.patients:
+        print(f"  - {patient.name} (ID: {patient.id})")
 
-    patients = []
-    for _ in range(50):
-        patient = Patient(
-            name=fake.name(),
-            doctor_id=random.randint(1, 10),
-            ward_id=random.randint(1, 10),
-        )
-        session.add(patient)
-        session.commit()
-        patients.append(patient)
-
-    ward_names = [
-        "Respiratory Care Unit",
-        "Gastroenterology Ward",
-        "Geriatrics Ward",
-        "Obstetrics and Gynecology Ward",
-        "Trauma Ward",
-        "Nephrology Ward",
-        "Pulmonology Ward",
-        "Hematology Ward",
-        "Dermatology Ward",
-        "Endocrinology Ward"
-    ]
-
-
-    wards = []
-    for _ in range(10):
-        ward = Ward(
-            name=random.choice(ward_names)
-        )
-        session.add(ward)
-        session.commit()
-        wards.append(ward)
-
-    # Populate the association table nurses_patients
-    for nurse in nurses:
-        # Random number of patients each nurse is assigned to
-        num_patients = random.randint(1, 5)
-        # Randomly select patients to assign to the nurse
-        patients_to_assign = random.sample(patients, num_patients)
-        # Add nurse-patient relationships to the association table
-        for patient in patients_to_assign:
-            # Check if the relationship already exists
-            existing_relationship = session.query(nurses_patients).filter_by(nurse_id=nurse.id, patient_id=patient.id).first()
-            if not existing_relationship:
-                nurse.patients.append(patient)
-                session.commit()
-
-    session.close()
+session.close()
